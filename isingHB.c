@@ -149,16 +149,10 @@ static void hb_sweep(int8_t *lat, int N, int dim) {
         int h = 0;
         for (int nb = 0; nb < nn; nb++)
             h += lat[neigh[idx*nn + nb]];
-
-        /* Muestrear directamente de la distribución condicional */
         lat[idx] = (rand01() < p_table[(h + 2*dim) / 2]) ? 1 : -1;
     }
 }
 
-/* ===========================================================
-   Simulación completa para una temperatura T.
-   t_eq barridos de termalización + t_meas de medida.
-   =========================================================== */
 static void hb_run(int8_t *lat, int dim, int N,
                    int t_eq, int t_meas, double T, double J,
                    double *E_out, double *M_out) {
@@ -180,9 +174,7 @@ static void hb_run(int8_t *lat, int dim, int N,
     }
 }
 
-/* ===========================================================
-   Argumentos de entrads
-   =========================================================== */
+//entrada
 typedef struct {
     int    L, t_meas, t_eq, S, dim;
     double Tmin, Tmax, J;
