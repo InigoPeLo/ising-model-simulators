@@ -19,11 +19,7 @@
  *     P(s_i = +1 | vecinos) = 1 / (1 + exp(-2*beta*J*h_i))
  *
  *   donde h_i = suma de los 2d vecinos de i.
- *   No hay accept/reject: el nuevo valor se asigna directamente.
- *
- *   Ventaja: trivial de implementar y sin overhead de clústeres.
- *   Desventaja: ralentización crítica (z~2) frente a z~0.25 de SW.
- */
+ *   No hay accept/reject: el nuevo valor se asigna directamente
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,9 +28,6 @@
 #include <math.h>
 #include <time.h>
 
-/* ===========================================================
-   xoshiro256** — RNG de alta calidad para Monte Carlo
-   =========================================================== */
 static uint64_t xs[4];
 
 static inline uint64_t rotl64(uint64_t x, int k) {
@@ -68,15 +61,6 @@ static void seed_rng(void) {
     }
 }
 
-/* ===========================================================
-   Tabla de vecinos completa (todos los 2d vecinos por sitio).
-   neigh[idx * 2*dim + 2*d + 0] = vecino +1 en eje d
-   neigh[idx * 2*dim + 2*d + 1] = vecino -1 en eje d
-
-   Heat Bath necesita la suma de TODOS los vecinos para calcular
-   el campo local h_i, a diferencia de SW donde bastaban los
-   vecinos adelante para formar los enlaces una sola vez.
-   =========================================================== */
 static int *neigh = NULL;
 
 static void build_neigh(int L, int dim, int N) {
@@ -112,9 +96,7 @@ static void build_neigh(int L, int dim, int N) {
    p_table[h_index] = 1 / (1 + exp(-2*beta*J*h))
    con h_index = (h + 2*dim) / 2  → índice 0..2*dim
 
-   Esto elimina exp() del bucle interno, que sería el cuello
-   de botella más severo del algoritmo.
-   =========================================================== */
+   =================================================== */
 #define MAX_COORD 3   /* dim máx = 3 → hasta 7 entradas */
 static double p_table[2 * MAX_COORD + 1];
 
@@ -124,14 +106,12 @@ static void build_p_table(int dim, double T, double J) {
         int h = 2 * (k - dim);   /* h ∈ {-2d, -2d+2, ..., 2d} */
         p_table[k] = 1.0 / (1.0 + exp(-2.0 * J * h / T));
     }
-    /* Casos extremos exactos para evitar errores de punto flotante */
+    
     p_table[0]   = 0.0;
     p_table[n-1] = 1.0;
 }
 
-/* ===========================================================
-   Estado inicial
-   =========================================================== */
+/* Estado inicial */
 static void init_lattice(int8_t *lat, int N, int ordered) {
     if (ordered) {
         memset(lat, 1, N);
@@ -141,11 +121,9 @@ static void init_lattice(int8_t *lat, int N, int ordered) {
     }
 }
 
-/* ===========================================================
+/*
    Energía total.
-   Recorre solo vecinos adelante (+eje): cada par una sola vez.
-   Usamos los índices pares de la tabla neigh (offset 0, 2, 4).
-   =========================================================== */
+   Recorre solo vecinos adelante (+eje): cada par una sola vez*/
 static double energia(const int8_t *lat, int N, int dim, double J) {
     double E = 0.0;
     int nn = 2 * dim;
@@ -157,9 +135,8 @@ static double energia(const int8_t *lat, int N, int dim, double J) {
     return E;
 }
 
-/* ===========================================================
-   Magnetización por espín: |<S>|
-   =========================================================== */
+/*
+   Magnetización por espín: |<S>| */
 static double magnetizacion(const int8_t *lat, int N) {
     long sum = 0;
     for (int i = 0; i < N; i++) sum += lat[i];
@@ -171,8 +148,6 @@ static double magnetizacion(const int8_t *lat, int N) {
    Un paso Heat Bath: barre la red completa una vez.
    Para cada espín calcula h_i = Σ vecinos, luego asigna s_i = +1
    con probabilidad p_table[(h_i + 2*dim)/2].
-
-   El orden del barrido es secuencial (más eficiente para caché).
    =========================================================== */
 static void hb_sweep(int8_t *lat, int N, int dim) {
     int nn = 2 * dim;
@@ -213,7 +188,7 @@ static void hb_run(int8_t *lat, int dim, int N,
 }
 
 /* ===========================================================
-   Argumentos
+   Argumentos de entrads
    =========================================================== */
 typedef struct {
     int    L, t_meas, t_eq, S, dim;
@@ -265,9 +240,7 @@ static Args parse_args(int argc, char **argv) {
     return a;
 }
 
-/* ===========================================================
-   Main
-   =========================================================== */
+
 int main(int argc, char **argv) {
     Args a = parse_args(argc, argv);
     seed_rng();
