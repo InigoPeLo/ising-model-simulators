@@ -20,7 +20,7 @@
  *
  *   donde h_i = suma de los 2d vecinos de i.
  *   No hay accept/reject: el nuevo valor se asigna directamente
-/*
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
