@@ -88,16 +88,8 @@ static void build_neigh(int L, int dim, int N) {
     }
 }
 
-/* ===========================================================
-   Tabla de probabilidades P(s=+1 | h) precomputada.
+// Tabla de probabilidades P(s=+1 | h) precomputada.
 
-   El campo local h_i = Σ_vecinos s_j toma valores enteros pares
-   en el rango [-2d, +2d]. Hay 2d+1 valores posibles.
-
-   p_table[h_index] = 1 / (1 + exp(-2*beta*J*h))
-   con h_index = (h + 2*dim) / 2  → índice 0..2*dim
-
-   =================================================== */
 #define MAX_COORD 3   /* dim máx = 3 → hasta 7 entradas */
 static double p_table[2 * MAX_COORD + 1];
 
